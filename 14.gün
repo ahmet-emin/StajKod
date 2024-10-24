@@ -1,0 +1,77 @@
+public class Course
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public int Credits { get; set; }
+    public string Instructor { get; set; }
+}
+
+
+------------
+
+public class CourseController : Controller
+{
+    public IActionResult Index()
+    {
+        // Öğrencinin kayıtlı olduğu dersleri getir
+        var courses = GetCoursesForStudent(); // Veritabanından dersleri al
+        return View(courses);
+    }
+
+    public IActionResult Add() => View();
+
+    [HttpPost]
+    public IActionResult Add(Course course)
+    {
+        if (ModelState.IsValid)
+        {
+            // Yeni dersi veritabanına ekle
+            AddCourseToDatabase(course); // Veritabanına ekleme işlemi yapılacak
+            return RedirectToAction("Index");
+        }
+        return View(course);
+    }
+
+    public IActionResult Delete(int id)
+    {
+        // Dersi veritabanından sil
+        DeleteCourseFromDatabase(id); // Veritabanından silme işlemi yapılacak
+        return RedirectToAction("Index");
+    }
+}
+
+
+---------
+
+@model List<Course>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ders Listesi</title>
+</head>
+<body>
+    <h1>Kayıtlı Dersler</h1>
+
+    <ul>
+        @foreach (var course in Model)
+        {
+            <li>
+                @course.Title - Kredi: @course.Credits - Öğretmen: @course.Instructor
+                <form asp-action="Delete" method="post" style="display:inline;">
+                    <input type="hidden" name="id" value="@course.Id" />
+                    <button type="submit">Sil</button>
+                </form>
+            </li>
+        }
+    </ul>
+
+    <h2>Yeni Ders Ekle</h2>
+    <form asp-action="Add" method="post">
+        <input type="text" name="Title" placeholder="Ders Adı" required />
+        <input type="number" name="Credits" placeholder="Kredi Sayısı" required />
+        <input type="text" name="Instructor" placeholder="Öğretmen" required />
+        <button type="submit">Ders Ekle</button>
+    </form>
+</body>
+</html>

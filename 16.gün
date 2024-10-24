@@ -1,0 +1,64 @@
+public class Report
+{
+    public decimal AverageScore { get; set; }
+    public int TotalCourses { get; set; }
+    public List<CourseStatistics> CourseStats { get; set; }
+}
+
+public class CourseStatistics
+{
+    public string CourseTitle { get; set; }
+    public decimal AverageScore { get; set; }
+}
+
+
+------------
+
+public class ReportController : Controller
+{
+    public IActionResult Index()
+    {
+        // Öğrencinin raporunu oluştur
+        var report = GenerateReportForStudent(); // Öğrenci için rapor oluşturulacak
+        return View(report);
+    }
+
+    private Report GenerateReportForStudent()
+    {
+        var report = new Report();
+        // Notları al, ortalamaları hesapla ve rapor oluştur
+        report.CourseStats = GetCourseStatistics(); // Kurs istatistikleri al
+        report.AverageScore = report.CourseStats.Average(cs => cs.AverageScore);
+        report.TotalCourses = report.CourseStats.Count;
+
+        return report;
+    }
+}
+
+
+-----------------
+
+@model Report
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Öğrenci Raporu</title>
+</head>
+<body>
+    <h1>Rapor</h1>
+    <p>Toplam Ders Sayısı: @Model.TotalCourses</p>
+    <p>Not Ortalaması: @Model.AverageScore.ToString("F2")</p>
+
+    <h2>Ders Başarı Durumu</h2>
+    <ul>
+        @foreach (var stat in Model.CourseStats)
+        {
+            <li>@stat.CourseTitle - Ortalama Not: @stat.AverageScore.ToString("F2")</li>
+        }
+    </ul>
+
+    <h2>Grafik</h2>
+    <!-- Burada grafik için bir kütüphane entegre edilecek -->
+</body>
+</html>

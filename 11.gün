@@ -1,0 +1,69 @@
+using System.ComponentModel.DataAnnotations;
+
+public class Student
+{
+    public int Id { get; set; }
+
+    [Required(ErrorMessage = "Öğrenci adı zorunludur.")]
+    public string Name { get; set; }
+
+    [Required(ErrorMessage = "E-posta adresi zorunludur.")]
+    [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi girin.")]
+    public string Email { get; set; }
+
+    [Required(ErrorMessage = "Şifre zorunludur.")]
+    [DataType(DataType.Password)]
+    public string Password { get; set; }
+}
+
+
+----------------
+
+using Microsoft.AspNetCore.Mvc;
+
+public class StudentController : Controller
+{
+    public IActionResult Register() => View();
+
+    [HttpPost]
+    public IActionResult Register(Student student)
+    {
+        if (ModelState.IsValid)
+        {
+            // Öğrenciyi veritabanına kaydetme işlemleri burada yapılacak.
+            return RedirectToAction("Index", "Home");
+        }
+        return View(student);
+    }
+
+    public IActionResult Login() => View();
+
+    [HttpPost]
+    public IActionResult Login(Student student)
+    {
+        // Öğrenci giriş kontrolü yapılacak.
+        return RedirectToAction("Dashboard", "Student");
+    }
+}
+
+
+------------------
+
+@model Student
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Öğrenci Kaydı</title>
+</head>
+<body>
+    <h1>Öğrenci Kaydı</h1>
+
+    <form asp-action="Register" method="post">
+        <input type="text" name="Name" placeholder="Öğrenci Adı" required />
+        <input type="email" name="Email" placeholder="E-posta" required />
+        <input type="password" name="Password" placeholder="Şifre" required />
+        <button type="submit">Kayıt Ol</button>
+    </form>
+</body>
+</html>

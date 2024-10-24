@@ -1,0 +1,63 @@
+[HttpGet]
+public IActionResult Edit(int id)
+{
+    var task = tasks.FirstOrDefault(t => t.Id == id);
+    if (task == null)
+    {
+        return NotFound();
+    }
+    return View(task);
+}
+
+[HttpPost]
+public IActionResult Edit(Task task)
+{
+    if (ModelState.IsValid)
+    {
+        var existingTask = tasks.FirstOrDefault(t => t.Id == task.Id);
+        if (existingTask != null)
+        {
+            existingTask.Title = task.Title;
+            existingTask.Description = task.Description;
+            return RedirectToAction("Index");
+        }
+    }
+    return View(task);
+}
+
+[HttpPost]
+public IActionResult Delete(int id)
+{
+    var task = tasks.FirstOrDefault(t => t.Id == id);
+    if (task != null)
+    {
+        tasks.Remove(task);
+    }
+    return RedirectToAction("Index");
+}
+
+----------------
+
+@model Task
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Görev Düzenle</title>
+</head>
+<body>
+    <h1>Görev Düzenle</h1>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <input type="text" name="Title" value="@Model.Title" required />
+        <textarea name="Description" required>@Model.Description</textarea>
+        <button type="submit">Güncelle</button>
+    </form>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit">Sil</button>
+    </form>
+</body>
+</html>

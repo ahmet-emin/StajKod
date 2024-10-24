@@ -1,0 +1,54 @@
+using System.ComponentModel.DataAnnotations;
+
+public class Task
+{
+    public int Id { get; set; }
+
+    [Required(ErrorMessage = "Görev başlığı zorunludur.")]
+    public string Title { get; set; }
+
+    [Required(ErrorMessage = "Açıklama zorunludur.")]
+    public string Description { get; set; }
+    
+    public string Status { get; set; } = "To Do";
+}
+
+-----------------------------------
+
+@model IEnumerable<Task>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Görev Yönetim Sistemi</title>
+    <link rel="stylesheet" href="~/css/styles.css" />
+</head>
+<body>
+    <h1>Görev Listesi</h1>
+
+    <form asp-action="Create" method="post">
+        <input type="text" name="Title" placeholder="Görev Başlığı" required />
+        <textarea name="Description" placeholder="Açıklama" required></textarea>
+        <button type="submit">Görev Ekle</button>
+    </form>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="error-messages">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <h2>Görevler</h2>
+    <ul>
+        @foreach (var task in Model)
+        {
+            <li>@task.Title - @task.Description - Durum: @task.Status</li>
+        }
+    </ul>
+</body>
+</html>
+

@@ -1,0 +1,57 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
+
+[HttpPost]
+public IActionResult Login(Student student)
+{
+    if (ModelState.IsValid)
+    {
+        // Dummy kullanıcı doğrulama işlemi (gerçek veritabanı kontrolü yapılacak)
+        if (student.Email == "student@example.com" && student.Password == "password123")
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, student.Name)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+            };
+
+            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+            return RedirectToAction("Dashboard", "Student");
+        }
+        ModelState.AddModelError(string.Empty, "E-posta veya şifre hatalı.");
+    }
+    return View(student);
+}
+
+
+-----------------
+
+@model Student
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oturum Aç</title>
+</head>
+<body>
+    <h1>Öğrenci Girişi</h1>
+
+    <form asp-action="Login" method="post">
+        <input type="email" name="Email" placeholder="E-posta" required />
+        <input type="password" name="Password" placeholder="Şifre" required />
+        <button type="submit">Giriş Yap</button>
+    </form>
+
+    @if (!ViewData["ErrorMessage"].IsNullOrEmpty())
+    {
+        <div style="color:red;">@ViewData["ErrorMessage"]</div>
+    }
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Şifre Sıfırlama Talebi</title>
+</head>
+<body>
+    <h1>Şifre Sıfırlama</h1>
+    <form asp-action="RequestPasswordReset" method="post">
+        <label for="Email">E-posta Adresi:</label>
+        <input type="email" name="Email" required />
+        <br />
+        <button type="submit">Sıfırlama Bağlantısı Gönder</button>
+    </form>
+
+    @if (ViewBag.Message != null)
+    {
+        <p>@ViewBag.Message</p>
+    }
+</body>
+</html>
+
+
+----------
+
+public class PasswordResetController : Controller
+{
+    [HttpGet]
+    public IActionResult RequestPasswordReset() => View();
+
+    [HttpPost]
+    public IActionResult RequestPasswordReset(string email)
+    {
+        var user = GetUserByEmail(email); // Kullanıcıyı e-posta ile bul
+        if (user != null)
+        {
+            var token = GenerateResetToken(); // Şifre sıfırlama token'ı oluştur
+            SaveResetToken(user.Id, token); // Token'ı veritabanına kaydet
+
+            // Şifre sıfırlama bağlantısını kullanıcıya e-posta olarak gönder
+            SendPasswordResetEmail(user.Email, token);
+
+            ViewBag.Message = "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.";
+        }
+        else
+        {
+            ViewBag.Message = "Bu e-posta adresine sahip bir kullanıcı bulunamadı.";
+        }
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult ResetPassword(string token)
+    {
+        if (IsValidToken(token))
+        {
+            return View(new ResetPasswordModel { Token = token });
+        }
+        return RedirectToAction("InvalidToken");
+    }
+
+    [HttpPost]
+    public IActionResult ResetPassword(ResetPasswordModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            if (IsValidToken(model.Token))
+            {
+                var userId = GetUserIdFromToken(model.Token); // Token'dan kullanıcıyı al
+                var newPasswordHash = PasswordHelper.HashPassword(model.NewPassword);
+                UpdateUserPassword(userId, newPasswordHash); // Kullanıcının şifresini güncelle
+
+                return RedirectToAction("PasswordResetSuccess");
+            }
+            return RedirectToAction("InvalidToken");
+        }
+        return View(model);
+    }
+}
+
+
+---------------
+
+public class ResetPasswordModel
+{
+    public string Token { get; set; }
+
+    [Required]
+    [StringLength(100, MinimumLength = 6)]
+    public string NewPassword { get; set; }
+
+    [Required]
+    [Compare("NewPassword", ErrorMessage = "Şifreler eşleşmiyor.")]
+    public string ConfirmPassword { get; set; }
+}
